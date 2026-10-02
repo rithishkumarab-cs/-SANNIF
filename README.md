@@ -6,12 +6,13 @@ SANNIF is a premium, Apple-inspired network intrusion detection and threat intel
 
 ## Key Features
 
-- **Apple Human Interface Design**: High-contrast, dark-themed cards, layout grid, subtle borders, and smooth slide-up fade-in transitions.
-- **Robust Schema Validation**: Automatically extracts expected features from the loaded model metadata (`model.feature_names_in_`) and verifies uploaded CSV headers to prevent runtime crashes.
-- **System Health Monitor**: Sidebar-mounted live check reporting model deserialization, encoder loading, and required features verification state.
+- **Apple Human Interface Design**: High-contrast, light-themed premium cards, layout grid, subtle borders, and smooth slide-up fade-in transitions.
+- **Robust Schema Validation**: Automatically extracts expected features from the loaded model metadata and verifies uploaded CSV headers to prevent runtime crashes.
+- **System Health Monitor**: Sidebar-mounted live check reporting model deserialization, encoder loading, engine mode, and required features verification state.
 - **Detailed Threat Analytics**: Interactive Plotly diagrams representing threat classification shares, category frequencies, confidence distribution histograms, and top flagged vectors.
 - **Auto-Archiving Report Engine**: Exports predictions and automatically archives unified records (inputs + outputs) on the server in the `reports/` folder with timestamped filenames.
 - **SOC Diagnostics Console**: Diagnostic tab capturing environment parameters (memory footprint, library versions, model features matrix, backend execution latency) for rapid debugging.
+- **Demonstration Mode Fallback**: If the production XGBoost DLL is blocked by Windows AppLocker/WDAC policies, SANNIF automatically activates a simulated inference engine to keep the full UI functional.
 
 ---
 
@@ -21,18 +22,19 @@ SANNIF is a premium, Apple-inspired network intrusion detection and threat intel
 PBL SANNIF/
 │
 ├── .streamlit/
-│   └── config.toml          # Streamlit theme config
+│   └── config.toml              # Streamlit light theme config
 │
-├── models/                  # Production models folder (Create this if missing)
-│   ├── xgboost_model.pkl    # Serialized XGBoost model
-│   └── attack_encoder.pkl   # Serialized LabelEncoder
+├── models/
+│   ├── xgboost_model.json       # Production XGBoost model (JSON format)
+│   ├── attack_encoder.pkl       # Serialized LabelEncoder
+│   └── encoded_dataset.csv      # UNSW-NB15 encoded dataset
 │
-├── reports/                 # Auto-saved prediction reports (Created on startup)
+├── reports/                     # Auto-saved prediction reports (created on startup)
 │
-├── app.py                   # Main Streamlit interface and page router
-├── model_loader.py          # Model deserialization and predict_attacks function
-├── requirements.txt         # Production dependencies
-└── README.md                # Documentation
+├── app.py                       # Main Streamlit interface and page router
+├── model_loader.py              # Model deserialization and predict_attacks function
+├── requirements.txt             # Production dependencies
+└── README.md                    # Documentation
 ```
 
 ---
@@ -61,8 +63,8 @@ pip install -r requirements.txt
 
 ### 3. Model Files Setup
 Before running the application, place your pre-trained model and label encoder files inside the `models/` directory:
-- `models/xgboost_model.pkl` (Trained classifier, must contain `feature_names_in_` or `feature_names` mapping the features used during training)
-- `models/attack_encoder.pkl` (Label encoder to map integer predictions back to attack category strings)
+- `models/xgboost_model.json` — Trained XGBoost classifier (JSON format, loaded via `model.load_model()`)
+- `models/attack_encoder.pkl` — Label encoder mapping integer predictions to attack category strings
 
 ### 4. Run the Application
 Start the Streamlit application:
@@ -71,7 +73,7 @@ Start the Streamlit application:
 streamlit run app.py
 ```
 
-Open `http://localhost:8508` in your browser.
+Open `http://localhost:8501` in your browser.
 
 ---
 
@@ -80,7 +82,7 @@ Open `http://localhost:8508` in your browser.
 - **Underlying Classifier**: XGBoost Baseline
 - **Accuracy**: 82.01%
 - **Benchmark Dataset**: UNSW-NB15
-- **Features Analyzed**: 34 Features (e.g. `dur`, `proto`, `service`, `state`, `spkts`, `dpkts`, etc.)
+- **Features Analyzed**: 34 features (e.g. `dur`, `proto`, `service`, `state`, `spkts`, `dpkts`, etc.)
 - **Output Classes**: 10 (9 Intrusions: Generic, Exploits, Fuzzers, DoS, Reconnaissance, Analysis, Backdoor, Shellcode, Worms + 1 Normal category)
 
 ---
@@ -90,30 +92,18 @@ Open `http://localhost:8508` in your browser.
 If the **System Health** panel shows a red indicator:
 1. Navigate to the **Diagnostics** page.
 2. Verify the exact path error shown in the console logs.
-3. Ensure that your serialized model is compatible with `joblib` and contains the expected scikit-learn feature metadata.
+3. If the engine mode shows **Simulated Fallback** (amber indicator), the XGBoost DLL is blocked by Windows security policies — the app remains fully functional using simulated inference.
 
+---
 
-## Features
+## Pages
 
-- XGBoost Intrusion Detection
-- Streamlit Dashboard
-- CSV Upload
-- Threat Detection
-- Confidence Scores
-- Analytics
-- Report Export
-
-## Installation
-
-git clone <repo-url>
-
-cd SANNIF
-
-python -m venv .venv
-
-# Windows
-.venv\Scripts\activate
-
-pip install -r requirements.txt
-
-streamlit run app.py
+| Page | Purpose |
+|------|---------|
+| 🏠 Dashboard | Live KPI cards, model profile, detection metrics |
+| 📂 Upload Dataset | CSV drag-and-drop with schema validation |
+| 🔍 Detection Results | Run XGBoost inference, view paginated threat logs |
+| 📊 Analytics | Plotly pie/bar/histogram charts |
+| ⬇ Export Report | Download CSV, view server archives |
+| 🩺 Diagnostics | System environment, backend status, feature list |
+| ℹ About | Project description, model specifications |
