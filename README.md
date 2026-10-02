@@ -107,3 +107,6 @@ If the **System Health** panel shows a red indicator:
 | ⬇ Export Report | Download CSV, view server archives |
 | 🩺 Diagnostics | System environment, backend status, feature list |
 | ℹ About | Project description, model specifications |
+
+Click The Line Below to experience our app
+https://rithishkumarsannif.streamlit.app/
